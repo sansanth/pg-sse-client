@@ -22,10 +22,10 @@ jobs:
       matrix:
         node: ["20", "22", "24"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # The test tools (vitest 5, jsdom 30) need Node 22 or newer. On Node 20, which the package supports, the tools run on
       # 24 and the built package runs on 20: `npm run smoke` makes a real request with it.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node == '20' && '24' || matrix.node }}
           cache: npm
@@ -37,7 +37,7 @@ jobs:
       - run: npm run test:coverage
         if: matrix.node != '20'
       - run: npm run build
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: matrix.node == '20'
         with:
           node-version: "20"
@@ -69,12 +69,12 @@ jobs:
     env:
       PG_SSE_TEST_DSN: postgresql://sse:sse@localhost:5432/pg_sse_test
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
           enable-cache: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
           cache: npm
