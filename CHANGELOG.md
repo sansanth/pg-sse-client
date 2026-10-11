@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-12
+
+### Changed
+
+- Published from CI with provenance. The library is the same as 0.1.0.
+
 ## [0.1.0] - 2026-10-12
 
 ### Added
@@ -18,5 +24,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `createSseParser` and `readSse`, also under `pg-sse-client/parser`: the text/event-stream parser, for a stream you
   open yourself.
 
-[Unreleased]: https://github.com/sansanth/pg-sse-client/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/sansanth/pg-sse-client/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/sansanth/pg-sse-client/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sansanth/pg-sse-client/releases/tag/v0.1.0
