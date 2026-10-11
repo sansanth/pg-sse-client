@@ -67,8 +67,5 @@ type check, the lint, and the unit and integration tests, builds the package, ru
 publishes with provenance. Publishing needs a trusted publisher set up on npmjs.com for this repository and `release.yml`,
 and a GitHub environment named `npm`.
 
-The first release is different, because npm can only attach a trusted publisher to a package that exists. From the merge
-commit on `main`, publish `0.1.0` by hand from a logged-in machine (`npm ci && npm run check && npm publish --access public`;
-provenance needs CI, so this one has none). Then run
-`npm trust github pg-sse-client --file release.yml --repo sansanth/pg-sse-client --env npm`, and push the tag `v0.1.0` so
-the version has one. The Release run for that tag fails at the publish step, because the version is already there.
+The `publish` job waits for you to approve the `npm` environment on the run's page in GitHub. Do not publish by hand: a
+release from a laptop has no provenance.
