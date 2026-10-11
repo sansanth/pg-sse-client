@@ -199,6 +199,12 @@ describe('the request', () => {
     expect(script.calls[1]!.headers.get('last-event-id')).toBe('7');
   });
 
+  it.each(['URL', 'query', '', null])('throws from connect for a cursorIn of %j, which TypeScript would refuse', (cursorIn) => {
+    const options = { onEvent: () => {}, cursorIn } as unknown as ConnectOptions;
+
+    expect(() => connect(() => 'https://api.example/stream', options)).toThrow(TypeError);
+  });
+
   it("throws from connect for cursorIn: 'url' without a url function", () => {
     expect(() => connect('https://api.example/stream', { onEvent: () => {}, cursorIn: 'url' })).toThrow(TypeError);
   });

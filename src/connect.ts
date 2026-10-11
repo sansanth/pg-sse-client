@@ -273,11 +273,14 @@ function reportByDefault(error: unknown): void {
  * when attempts fail. With `cursorIn: 'url'` the cursor goes to the URL function instead, and no header is sent. It starts at once; call `close()` to end it.
  */
 export function connect(url: string | URL | ((lastEventId: string) => string | URL), options: ConnectOptions): Connection {
-  // A URL that can never be fetched fails here, as `new EventSource(url)` does, instead of being retried for ever. A `fetch`
-  // of the caller's may read URLs its own way.
+  if (options.cursorIn !== undefined && options.cursorIn !== 'header' && options.cursorIn !== 'url') {
+    throw new TypeError(`cursorIn is 'header' or 'url', not ${JSON.stringify(options.cursorIn)}`);
+  }
   if (options.cursorIn === 'url' && typeof url !== 'function') {
     throw new TypeError("cursorIn: 'url' needs a URL function, which is given the cursor");
   }
+  // A URL that can never be fetched fails here, as `new EventSource(url)` does, instead of being retried for ever. A `fetch`
+  // of the caller's may read URLs its own way.
   if (typeof url !== 'function' && !options.fetch && !/^https?:$/.test(new URL(url, globalThis.location?.href).protocol)) {
     throw new TypeError(`Not a URL fetch can read: ${String(url)}`);
   }

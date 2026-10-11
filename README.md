@@ -76,7 +76,7 @@ It starts at once, like `new EventSource(url)`. On the server, set `end_event="e
 | `connectTimeoutMs`, `idleTimeoutMs` | 15000, 45000 | `0` turns a timeout off, and so does a value too long for a timer, such as `Infinity`. |
 | `backoff` | see `Backoff` in `src/connect.ts` | `baseMs`, `maxMs`, `shortMs`, `reconnectFloorMs`, `reconnectSpreadMs`, `serverMaxMs`. An entry that is not a finite number of at least 0 keeps its default. |
 
-The first argument is a URL string, a `URL`, or a function returning one, called before every attempt. A function is given the cursor (`''` at first). With `cursorIn: 'url'` it is the only place the cursor goes, and no `Last-Event-ID` header is sent: `` url: (id) => `${base}?cursor=${encodeURIComponent(id)}` ``, encoded. `cursorIn: 'url'` without a URL function throws a `TypeError` from `connect`. A string or `URL` that can never be fetched, and `headers` given as a value that cannot be sent, throw a `TypeError` from `connect`, as `new EventSource` throws.
+The first argument is a URL string, a `URL`, or a function returning one, called before every attempt. A function is given the cursor (`''` at first). With `cursorIn: 'url'` it is the only place the cursor goes, and no `Last-Event-ID` header is sent: `` url: (id) => `${base}?cursor=${encodeURIComponent(id)}` ``, encoded. `cursorIn: 'url'` without a URL function, or any `cursorIn` but `'header'` and `'url'`, throws a `TypeError` from `connect`. A string or `URL` that can never be fetched, and `headers` given as a value that cannot be sent, throw a `TypeError` from `connect`, as `new EventSource` throws.
 
 `connect` returns `{ close(), retryNow(), lastEventId }`. `retryNow()` cuts a wait short, for example when your own app learns the network is back.
 
