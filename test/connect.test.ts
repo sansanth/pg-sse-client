@@ -1610,6 +1610,43 @@ describe('the policy for an error', () => {
     expect(script.calls).toHaveLength(2);
   });
 
+  it('floors the rest onError names at the Retry-After the server sent', async () => {
+    const script = scriptedFetch();
+    script.answer(refusal(503, { 'retry-after': '300' }));
+    script.answer(openStream());
+    start(script, { onError: () => ({ retryAfterMs: 180_000 }) });
+    await settle();
+
+    await vi.advanceTimersByTimeAsync(299_999);
+    expect(script.calls).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(script.calls).toHaveLength(2);
+  });
+
+  it('floors the rest onError names at the last retry: of the server, and leaves a longer one alone', async () => {
+    const script = scriptedFetch();
+    const first = openStream();
+    script.answer(first);
+    script.answer(refusal(503));
+    script.answer(openStream());
+    const rests = [5000, 60_000];
+    start(script, { onError: () => ({ retryAfterMs: rests.shift()! }) });
+    await settle();
+
+    first.send('retry: 20000\ndata: x\n\n');
+    first.fail();
+    await vi.advanceTimersByTimeAsync(19_999);
+    expect(script.calls).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(script.calls).toHaveLength(2);
+
+    await vi.advanceTimersByTimeAsync(59_999);
+    expect(script.calls).toHaveLength(2);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(script.calls).toHaveLength(3);
+  });
+
   it('waits exactly the time onError names', async () => {
     const script = scriptedFetch();
     script.answer(refusal(500));

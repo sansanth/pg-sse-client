@@ -56,7 +56,7 @@ It starts at once, like `new EventSource(url)`. On the server, set `end_event="e
 | A stream that stayed open 5 s or more | Healthy, however it ended: the failure count starts again. A clean end reconnects as above; an error is failure 1, backed off from as such. A stream that fails sooner adds to the count. |
 | 4xx other than 408 and 429, a 3xx you chose not to follow, a 2xx that is not an event stream (a 204, say), or an event past `maxEventChars` | Stops, and `onClose(error)` says why. A repeat would only get the same answer, and `EventSource` stops too. A 401 is one of these: when your `headers` function can get a fresh token, return `'retry'` from `onError` for it. |
 | Silence | No bytes (pings count) for 45 s aborts and retries. No response headers in 15 s does too, and a `headers` function that takes that long counts. |
-| Browser | A wait of the client's own choosing ends early when the browser comes back `online` or the tab becomes visible, once it has run a second and as long as the last `retry:`. A wait the server asked for, or `onError` chose with `{ retryAfterMs }`, does not (`retryNow()` still ends it). |
+| Browser | A wait of the client's own choosing ends early when the browser comes back `online` or the tab becomes visible, once it has run a second and as long as the last `retry:`. A wait the server asked for, or `onError` chose with `{ retryAfterMs }` (unless it asked for `wakeOnResume`), does not (`retryNow()` still ends it). |
 
 ### Options
 
@@ -67,7 +67,7 @@ It starts at once, like `new EventSource(url)`. On the server, set `end_event="e
 | `onOpen()` | | The server accepted the request. It has sent nothing yet. |
 | `onDisconnect()` | | A stream that had opened has ended, for any reason, before `onError` and the wait. Where a "live" flag goes false. Not called by `close()`. |
 | `onEnd(reason)` | | The goodbye event's `reason`, or `unknown`. Data that is not JSON is the reason as it came. |
-| `onError(error, { failures })` | | Every failed attempt. Return `'retry'`, `'stop'` or `{ retryAfterMs }` (which also resets `failures`), or nothing for the default. `{ retryAfterMs, wakeOnResume: true }` also ends the rest early when the browser comes back `online` or the tab becomes visible, after the first second. May be `async`. |
+| `onError(error, { failures })` | | Every failed attempt. Return `'retry'`, `'stop'` or `{ retryAfterMs }` (which also resets `failures`), or nothing for the default. `{ retryAfterMs }` is a rest that is never shorter than the server's `Retry-After` or last `retry:`; with `wakeOnResume: true` it also ends early when the browser comes back `online` or the tab becomes visible, after the first second and that floor. May be `async`. |
 | `onClose(error?)` | | The connection is over: `close()` was called (no argument), or an error stopped it. Once. |
 | `headers` | | `HeadersInit`, or a function returning one (or a promise of one), called before every attempt. |
 | `init` | | More `fetch` options, such as `credentials: 'include'`. `method`, `headers`, `body` and `signal` are the client's. `EventSource` sends `cache: 'no-store'`; pg-sse's `Cache-Control: no-cache` does the same job. |
@@ -97,6 +97,35 @@ onError: (error, { failures }) => {
   }
 },
 onOpen: stopPolling,
+```
+
+### Waiting for a new sign-in after a 401
+
+A 401 stops the connection by default. To rest until the user signs in again instead, return a long `{ retryAfterMs }` and call `retryNow()` when the credential changes. The version lets `onError` tell whether the failed attempt carried the old credential: a sign-in can land while that attempt is still in flight, when there is no rest for `retryNow()` to end.
+
+```ts
+import { connect, StreamRefused } from 'pg-sse-client';
+
+let credentialVersion = 0; // add 1 on every sign-in
+let sentVersion = 0;
+
+const stream = connect(url, {
+  headers: () => {
+    sentVersion = credentialVersion;
+    return { Authorization: `Bearer ${currentToken()}` };
+  },
+  onError: (error) => {
+    if (!(error instanceof StreamRefused) || error.status !== 401) return;
+    if (sentVersion !== credentialVersion) return 'retry'; // signed in again while that attempt was out
+    return { retryAfterMs: 24 * 60 * 60_000 };
+  },
+  onEvent,
+});
+
+function onSignedIn() {
+  credentialVersion += 1;
+  stream.retryNow();
+}
 ```
 
 ### Cross-origin requests
