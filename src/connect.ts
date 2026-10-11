@@ -37,9 +37,10 @@ export class StreamEndedEarly extends Error {
 
 /**
  * What `onError` decides. `retry` waits as long as the backoff and the server's hints say, `stop` ends the connection
- * for good, and `{ retryAfterMs }` waits exactly that long, for example to rest while the caller polls instead. With
- * `wakeOnResume` the browser coming back online, or the tab becoming visible, ends that rest early, once it has run a second. A `retryAfterMs`
- * that is not a finite number of at least 0 is ignored, as if `onError` had returned nothing.
+ * for good, and `{ retryAfterMs }` waits that long, for example to rest while the caller polls instead, but never less
+ * than the server's `Retry-After` or last `retry:`. With `wakeOnResume` the browser coming back online, or the tab
+ * becoming visible, ends that rest early, once it has run a second and that long. A `retryAfterMs` that is not a finite
+ * number of at least 0 is ignored, as if `onError` had returned nothing.
  */
 export type ErrorAction = 'retry' | 'stop' | { retryAfterMs: number; wakeOnResume?: boolean };
 
@@ -480,9 +481,9 @@ export function connect(url: string | URL | ((lastEventId: string) => string | U
 
   // The server's word (`retry:`, `Retry-After`) is a floor. After a clean end the `retry:` of the stream that ended is the
   // whole wait, so the pause that follows a goodbye is the server's to set; without one the wait is spread at random.
-  function delayAfter(failures: number, retryAfterMs: number | null, retry: number | null): { ms: number; holdMs: number } {
+  function delayAfter(failures: number, retryAfterMs: number | null, retry: number | null): { ms: number; holdMs: number; floor: number } {
     const hint = capped(retry);
-    if (failures === 0 && hint !== null) return { ms: hint, holdMs: hint };
+    if (failures === 0 && hint !== null) return { ms: hint, holdMs: hint, floor: hint };
     const floor = Math.max(capped(retryAfterMs) ?? 0, capped(serverRetry) ?? 0);
     const ms =
       failures === 0
@@ -491,13 +492,13 @@ export function connect(url: string | URL | ((lastEventId: string) => string | U
     // Spread, so the clients a full server refused together do not come back at the same moment.
     const refused = capped(retryAfterMs);
     const spread = refused === null ? 0 : refused + Math.random() * backoff.reconnectSpreadMs;
-    return { ms: Math.max(floor, spread, ms), holdMs: Math.max(floor, spread) };
+    return { ms: Math.max(floor, spread, ms), holdMs: Math.max(floor, spread), floor };
   }
 
   async function run(): Promise<void> {
     let failures = 0;
     while (!closed) {
-      let wait: { ms: number; holdMs: number };
+      let wait: { ms: number; holdMs: number; floor: number };
       let failure: unknown;
       let failed = false;
       const outcome: Outcome = { openedAt: null, retry: null };
@@ -538,7 +539,9 @@ export function connect(url: string | URL | ((lastEventId: string) => string | U
         if (typeof action === 'object') {
           failures = 0;
           retryAsked = false;
-          wait = { ms: action.retryAfterMs, holdMs: action.wakeOnResume ? 0 : action.retryAfterMs };
+          // The server's word is a floor under this wait too.
+          const ms = Math.max(action.retryAfterMs, wait.floor);
+          wait = { ms, holdMs: action.wakeOnResume ? wait.floor : ms, floor: wait.floor };
         }
       }
       if (retryAsked) continue;

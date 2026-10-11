@@ -202,6 +202,25 @@ describe('waiting to reconnect in a page', () => {
     expect(script.calls).toHaveLength(2);
   });
 
+  it('keeps a wakeOnResume rest from ending before the Retry-After of the server', async () => {
+    const script = scriptedFetch();
+    script.answer(refusal(503, { 'retry-after': '30' }));
+    script.answer(openStream());
+    connection = connect('https://api.example/stream', {
+      fetch: script.fetch,
+      onEvent: () => {},
+      onError: () => ({ retryAfterMs: 180_000, wakeOnResume: true }),
+    });
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    window.dispatchEvent(new Event('online'));
+    await vi.advanceTimersByTimeAsync(19_999);
+    expect(script.calls).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(script.calls).toHaveLength(2);
+  });
+
   it('keeps the rest when wakeOnResume is anything but true', async () => {
     const script = scriptedFetch();
     script.answer(() => Promise.reject(new TypeError('offline')));
