@@ -70,7 +70,7 @@ jobs:
       PG_SSE_TEST_DSN: postgresql://sse:sse@localhost:5432/pg_sse_test
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
           enable-cache: true
