@@ -100,7 +100,7 @@ export function droppableFetch() {
         });
         // The body is already errored when a drop cancelled the read this answers.
         if (dropped) return;
-        if (done) c.close();
+        if (done || value === undefined) c.close();
         else c.enqueue(value);
       },
       cancel: () => reader.cancel(),
