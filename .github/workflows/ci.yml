@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the run it supersedes. Runs on main are never cancelled: each one is a record.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22", "24"]
+    steps:
+      - uses: actions/checkout@v4
+      # The test tools (vitest 5, jsdom 30) need Node 22 or newer. On Node 20, which the package supports, the tools run on
+      # 24 and the built package runs on 20: `npm run smoke` makes a real request with it.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node == '20' && '24' || matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+        if: matrix.node != '20'
+      - run: npm run lint
+        if: matrix.node != '20'
+      - run: npm run test:coverage
+        if: matrix.node != '20'
+      - run: npm run build
+      - uses: actions/setup-node@v4
+        if: matrix.node == '20'
+        with:
+          node-version: "20"
+      - run: node --version
+      - run: npm run smoke
+      - run: npm pack --dry-run
+
+  # The client against a real pg-sse hub and Postgres. Oldest and newest Postgres the hub supports.
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: ["14", "18"]
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_USER: sse
+          POSTGRES_PASSWORD: sse
+          POSTGRES_DB: pg_sse_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sse"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PG_SSE_TEST_DSN: postgresql://sse:sse@localhost:5432/pg_sse_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+          enable-cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: uv sync --locked --project test/integration/server
+      - run: npm ci
+      # A skipped integration test is not a pass: the suite skips itself without the database, so fail if it did.
+      - run: npx vitest run test/integration --reporter=verbose --reporter=json --outputFile.json=integration.json
+      - run: node scripts/assert-ran.mjs integration.json

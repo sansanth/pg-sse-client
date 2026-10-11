@@ -1,0 +1,93 @@
+name: Release
+
+# Push a tag like v0.1.0 to publish to npm. The tag must match the version in package.json.
+# Needs a trusted publisher for this repository and workflow on npmjs.com, and an environment named `npm`:
+#   https://docs.npmjs.com/trusted-publishers
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # Cheap, and first: a tag that is off main or does not match the version fails before any test runs.
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: The tagged commit is on main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+      - name: Tag matches the package version
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+
+  # A tag never publishes a commit the tests have not passed.
+  test:
+    needs: tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: sse
+          POSTGRES_PASSWORD: sse
+          POSTGRES_DB: pg_sse_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U sse"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: uv sync --locked --project test/integration/server
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      # No database in this step: the unit tests and their coverage, as in ci.yml, and the integration tests only once, below.
+      - run: npm run test:coverage
+      - run: npx vitest run test/integration --reporter=verbose --reporter=json --outputFile.json=integration.json
+        env:
+          PG_SSE_TEST_DSN: postgresql://sse:sse@localhost:5432/pg_sse_test
+      - run: node scripts/assert-ran.mjs integration.json
+
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run smoke
+      # The oldest Node the package supports, which the test tools cannot run on, then back to the newest for npm.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm run smoke
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+      # The checks ran above; `prepublishOnly` would run them all again, and a failure there would fail the publish itself.
+      - run: npm publish --provenance --access public --ignore-scripts

@@ -1,0 +1,71 @@
+{
+  "name": "pg-sse-client",
+  "version": "0.1.0",
+  "description": "A fetch-based server-sent events client for pg-sse streams: custom headers, Last-Event-ID resume, server retry hints and backoff.",
+  "keywords": [
+    "sse",
+    "server-sent-events",
+    "eventsource",
+    "fetch",
+    "pg-sse",
+    "postgres"
+  ],
+  "license": "MIT",
+  "author": "Sandhu Santhakumar <code@sandhu.sh>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sansanth/pg-sse-client.git"
+  },
+  "bugs": "https://github.com/sansanth/pg-sse-client/issues",
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./parser": {
+      "types": "./dist/standalone.d.ts",
+      "default": "./dist/standalone.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "parser": [
+        "./dist/standalone.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint --max-warnings 0 .",
+    "test": "vitest run --exclude \"test/integration/**\"",
+    "test:coverage": "vitest run --coverage --exclude \"test/integration/**\"",
+    "check": "npm run typecheck && npm run lint && npm run test:coverage && npm run build && npm run smoke",
+    "prepublishOnly": "npm run check",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.19.1",
+    "@vitest/coverage-v8": "^5.0.3",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
+  }
+}
