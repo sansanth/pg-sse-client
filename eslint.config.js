@@ -13,5 +13,5 @@ export default defineConfig(
     },
   },
   { files: ['src/**'], languageOptions: { globals: globals.browser } },
-  { files: ['test/**', 'scripts/**', '*.config.{js,ts}'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+  { files: ['test/**', 'scripts/**', 'examples/**', '*.config.{js,ts}'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
 );

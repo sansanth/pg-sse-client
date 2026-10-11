@@ -2,6 +2,9 @@
 
 [![CI](https://github.com/sansanth/pg-sse-client/actions/workflows/ci.yml/badge.svg)](https://github.com/sansanth/pg-sse-client/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/pg-sse-client)](https://www.npmjs.com/package/pg-sse-client)
+[![Node versions](https://img.shields.io/node/v/pg-sse-client)](https://www.npmjs.com/package/pg-sse-client)
+[![Minified and gzipped](https://img.shields.io/bundlephobia/minzip/pg-sse-client)](https://bundlephobia.com/package/pg-sse-client)
+[![License](https://img.shields.io/npm/l/pg-sse-client)](https://github.com/sansanth/pg-sse-client/blob/main/LICENSE)
 
 The browser and Node client for [pg-sse](https://github.com/sansanth/pg-sse) streams, for when `EventSource` is not enough. pg-sse is a Python library (`pip install pg-sse`) that streams Postgres changes from a FastAPI or other Python server; this package is its JavaScript side, not the unrelated `pg-sse` package on npm.
 
@@ -110,6 +113,26 @@ for await (const event of readSse(response.body!, onActivity)) { /* { event, dat
 
 For a stream you open yourself, such as a `POST` that answers with events. The parser follows the WHATWG rules; `parser.lastEventId` and `parser.retry` hold the connection-level state. The parser reads a whole chunk before the first of its events reaches you, so to resume use the `id` of the last event you handled, not `parser.lastEventId`.
 
+## Testing your code
+
+Pass your own `fetch` and the stream is whatever you hand back, with no server:
+
+```ts
+const body = new ReadableStream<Uint8Array>({
+  start(controller) {
+    controller.enqueue(new TextEncoder().encode('id: 1\nevent: change\ndata: {"n":1}\n\n'));
+  },
+});
+const stream = connect('https://api.example/stream', {
+  fetch: async () => new Response(body, { headers: { 'content-type': 'text/event-stream' } }),
+  onEvent: (event) => seen.push(JSON.parse(event.data)),
+});
+// ...assert on `seen`, then
+stream.close();
+```
+
+Fake timers work for the waits: a failed attempt, or a `retry:`, is a timer of the length the table above says, with the jitter from `Math.random()`. Stub that too if a test needs an exact wait.
+
 ## What is not here
 
 - **The meaning of your events.** The client does not know `change` from `ready`; that is your server's protocol.
@@ -118,4 +141,4 @@ For a stream you open yourself, such as a `POST` that answers with events. The p
 
 ## Development
 
-If you are generating code with this package, [llms.txt](https://github.com/sansanth/pg-sse-client/blob/main/llms.txt) carries the rules in a form meant to be fed to an agent. See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
+If you are generating code with this package, [llms.txt](https://github.com/sansanth/pg-sse-client/blob/main/llms.txt) carries the rules in a form meant to be fed to an agent. Runnable examples are in [examples/](examples/): a Node script, a page that carries the cursor in the URL and falls back to polling, and a React hook. See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
