@@ -168,6 +168,10 @@ Fake timers work for the waits: a failed attempt, or a `retry:`, is a timer of t
 - **A message queue.** It delivers what the stream sends; a gap is closed by the server re-reading from the cursor it was sent.
 - **React or any framework.** Wrap `connect` in your own hook; `close()` is the cleanup.
 
+## For AI coding agents
+
+If you are generating code with this package, [llms.txt](https://github.com/sansanth/pg-sse-client/blob/main/llms.txt) carries the rules in a form meant to be fed to an agent. Runnable examples are in [examples/](examples/): a Node script, a page that carries the cursor in the URL and falls back to polling, and a React hook.
+
 ## Development
 
-If you are generating code with this package, [llms.txt](https://github.com/sansanth/pg-sse-client/blob/main/llms.txt) carries the rules in a form meant to be fed to an agent. Runnable examples are in [examples/](examples/): a Node script, a page that carries the cursor in the URL and falls back to polling, and a React hook. See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
+See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
