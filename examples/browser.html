@@ -1,0 +1,43 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>pg-sse-client in a page</title>
+<!--
+  Serve this file from any origin and point STREAM at a pg-sse route.
+
+  The cursor goes in the URL (`?cursor=`), so a cross-origin server needs CORS for `Authorization` and nothing for
+  `Last-Event-ID`. After three failures in a row the page polls instead and rests the stream for three minutes, or
+  until the tab is back.
+-->
+<ul id="events"></ul>
+<script type="module">
+  import { connect } from 'https://esm.sh/pg-sse-client@0.1.1';
+
+  const STREAM = 'https://api.example/rooms/lobby/stream';
+  const list = document.getElementById('events');
+  let polling;
+
+  connect((cursor) => `${STREAM}?cursor=${encodeURIComponent(cursor)}`, {
+    cursorIn: 'url',
+    headers: async () => ({ Authorization: `Bearer ${await getToken()}` }),
+    onEvent: (event) => {
+      const item = document.createElement('li');
+      item.textContent = `${event.id} ${event.data}`;
+      list.append(item);
+    },
+    onOpen: () => clearInterval(polling),
+    onError: (error, { failures }) => {
+      if (failures >= 3) {
+        polling = setInterval(refetch, 15_000);
+        return { retryAfterMs: 3 * 60_000, wakeOnResume: true };
+      }
+    },
+  });
+
+  async function getToken() {
+    return 'replace me';
+  }
+
+  async function refetch() {
+    // Fetch the state from your own endpoint here.
+  }
+</script>

@@ -16,6 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/sansanth/pg-sse-client.git"
   },
+  "homepage": "https://github.com/sansanth/pg-sse-client#readme",
   "bugs": "https://github.com/sansanth/pg-sse-client/issues",
   "type": "module",
   "sideEffects": false,
