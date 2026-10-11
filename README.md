@@ -118,4 +118,4 @@ For a stream you open yourself, such as a `POST` that answers with events. The p
 
 ## Development
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
+If you are generating code with this package, [llms.txt](https://github.com/sansanth/pg-sse-client/blob/main/llms.txt) carries the rules in a form meant to be fed to an agent. See [CONTRIBUTING.md](CONTRIBUTING.md). The wire contract this client follows is in the [pg-sse README](https://github.com/sansanth/pg-sse#frames-you-will-see).
