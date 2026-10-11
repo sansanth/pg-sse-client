@@ -8,6 +8,13 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Types for the Node that CI and the tests run on, not whatever is newest.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # typescript-eslint supports up to 6.0 so far.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: uv
     directory: /test/integration/server
     schedule:
