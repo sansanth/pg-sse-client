@@ -1,6 +1,6 @@
 {
   "name": "pg-sse-client",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A fetch-based server-sent events client for pg-sse streams: custom headers, Last-Event-ID resume, server retry hints and backoff.",
   "keywords": [
     "sse",
