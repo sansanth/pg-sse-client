@@ -91,14 +91,14 @@ wheels = [
 
 [[package]]
 name = "pg-sse"
-version = "0.5.0"
+version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "psycopg" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8f/f9/93191af8eb9527a8ef7e55a16a43e1f7f627f841a6cf219df1e6e300dcfc/pg_sse-0.5.0.tar.gz", hash = "sha256:d0eebe394c76c36e2efaa5514dc50300e934f81ded7e0add69b240b5fdacc187", size = 139488, upload-time = "2026-10-12T07:27:12.88Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3c/d5/75d8790abcd58bf8827c314c6c5f38ef36aceddcbacfc18fd1016fb86e40/pg_sse-0.6.0.tar.gz", hash = "sha256:822fcac579b4c7be74e458e9a603e6c5498429b82365bf3081bb739de10f1566", size = 149782, upload-time = "2026-11-18T16:50:23.464Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e3/70/256005bce37165fcdefec1d1f18d7cd3dab8257562faf49b11f71e79729a/pg_sse-0.5.0-py3-none-any.whl", hash = "sha256:24d049d2a5296dca1adefc484cad578ec42ad18db121c9a7964a479c06e9407b", size = 66946, upload-time = "2026-10-12T07:27:11.338Z" },
+    { url = "https://files.pythonhosted.org/packages/37/0f/39171792717e31bdffa856cb1cb26a6f142992ae144a26aa60055cec74ce/pg_sse-0.6.0-py3-none-any.whl", hash = "sha256:a458e24f3a5db2703065cb4cbac580f0bec795f5113dfd2ca2a6b57bb64ab97d", size = 72181, upload-time = "2026-11-18T16:50:22.06Z" },
 ]
 
 [package.optional-dependencies]
@@ -119,7 +119,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pg-sse", extras = ["fastapi"], specifier = ">=0.4.0,<0.6.0" },
+    { name = "pg-sse", extras = ["fastapi"], specifier = ">=0.4.0,<0.7.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.1" },
     { name = "psycopg-pool", specifier = ">=3.2" },
     { name = "uvicorn", specifier = ">=0.30" },
