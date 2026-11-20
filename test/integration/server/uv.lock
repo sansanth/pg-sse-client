@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.11"
 
 [[package]]
@@ -91,14 +91,14 @@ wheels = [
 
 [[package]]
 name = "pg-sse"
-version = "0.6.0"
+version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "psycopg" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3c/d5/75d8790abcd58bf8827c314c6c5f38ef36aceddcbacfc18fd1016fb86e40/pg_sse-0.6.0.tar.gz", hash = "sha256:822fcac579b4c7be74e458e9a603e6c5498429b82365bf3081bb739de10f1566", size = 149782, upload-time = "2026-11-18T16:50:23.464Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5f/59/dccabd5c3301b4ece923312a0de652ff5b8d4365d561c41ca083201a86db/pg_sse-0.6.1.tar.gz", hash = "sha256:dc4ff957d940520a0a3c62453d8e27645523b1920267110c9be1ea733c5c721a", size = 153198, upload-time = "2026-11-20T15:50:26.515Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/37/0f/39171792717e31bdffa856cb1cb26a6f142992ae144a26aa60055cec74ce/pg_sse-0.6.0-py3-none-any.whl", hash = "sha256:a458e24f3a5db2703065cb4cbac580f0bec795f5113dfd2ca2a6b57bb64ab97d", size = 72181, upload-time = "2026-11-18T16:50:22.06Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/fe/d63eb0d653ef5039d4113c8db652bdb7f763924e69faa194198ac41d8319/pg_sse-0.6.1-py3-none-any.whl", hash = "sha256:d797078b565eb6e28eb458bf0bcf540d0a531c709a056c3a90a535b3e5357122", size = 73956, upload-time = "2026-11-20T15:50:25.443Z" },
 ]
 
 [package.optional-dependencies]
